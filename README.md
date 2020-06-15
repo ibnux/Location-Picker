@@ -54,4 +54,24 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
 }
 ```
 
+# Get Direction
+
+Single destination
+
+```
+DirectionActivity.goTo("-6.3763443","106.7190438",this);
+
+```
+
+Multiple Destination
+
+```
+List<String> lokasi = new ArrayList<>();
+lokasi.add("-6.3763443,106.7190438");
+lokasi.add("-6.3740574,106.6355415");
+lokasi.add("-6.3455664,106.7641159");
+DirectionActivity.goTo(lokasi,this);
+```
+
+
 ### Created by ibnux

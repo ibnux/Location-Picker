@@ -1,3 +1,4 @@
 <resources>
     <string name="select_location">Select Location</string>
+    <string name="open_maps">Start navigation</string>
 </resources>

@@ -1,14 +1,15 @@
 package com.ibnux.locationpicker;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.webkit.GeolocationPermissions;
 import android.webkit.SslErrorHandler;
@@ -20,25 +21,28 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
-public class LocationPickerActivity extends AppCompatActivity {
+public class DirectionActivity extends AppCompatActivity {
+    //https://www.google.com/maps/dir//-6.3763443,106.7190438/
     String mPerms[] = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
     WebView webView;
     ProgressBar progressBar;
-    
-    String mapsUrl = "https://www.google.com/maps/";
+    String mapsUrl = "https://www.google.com/maps/",
+            destination = "dir//";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_location_picker);
+        setContentView(R.layout.activity_direction);
+
         webView = findViewById(R.id.webView);
         progressBar = findViewById(R.id.progressBar);
 
@@ -47,43 +51,103 @@ public class LocationPickerActivity extends AppCompatActivity {
         WebSettings settings = webView.getSettings();
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setDatabaseEnabled(true);
-        settings.setGeolocationDatabasePath( getFilesDir().getPath() );
+        settings.setGeolocationDatabasePath(getFilesDir().getPath());
         settings.setJavaScriptEnabled(true);
         settings.setGeolocationEnabled(true);
         settings.setUserAgentString("Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36");
         settings.setUseWideViewPort(true);
 
+        Intent i = getIntent();
+        if (i.hasExtra("multiDirection")) {
+            ArrayList<String> locations = i.getStringArrayListExtra("multiDirection");
+            int count = locations.size();
+            for(int n=0; n<count; n++) {
+                destination += locations.get(n) + "/";
+            }
+            if(count>2) {
+                mapsUrl += destination;
+                openMaps(mapsUrl);
+                finish();
+            }
+        } else if (i.hasExtra("lat") && i.hasExtra("lon")) {
+            destination += i.getStringExtra("lat") + "," + i.getStringExtra("lon");
+        }
+
+        mapsUrl += destination;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(mPerms, 3312);
                 return;
-            }else{
+            } else {
                 webView.loadUrl(mapsUrl);
             }
-        }else{
+        } else {
             webView.loadUrl(mapsUrl);
         }
     }
 
+    /**
+     * Open Direction Maps
+     *
+     * @param lat String
+     * @param lon String
+     * @param cx  Context
+     */
+    public static void goTo(String lat, String lon, Context cx) {
+        Intent i = new Intent(cx, DirectionActivity.class);
+        i.putExtra("lat", lat);
+        i.putExtra("lon", lon);
+        cx.startActivity(i);
+    }
+
+    /**
+     * Open Direction Maps
+     *
+     * @param lat double
+     * @param lon double
+     * @param cx  Context
+     */
+    public static void goTo(double lat, double lon, Context cx) {
+        goTo(String.valueOf(lat), String.valueOf(lon), cx);
+    }
+
+    /**
+     * Open Direction Maps with multiple destination
+     * list.add("lat,lon");
+     *
+     * @param multiDirection arraylist
+     */
+    public static void goTo(List<String> multiDirection, Context cx) {
+        Intent i = new Intent(cx, DirectionActivity.class);
+        i.putStringArrayListExtra("multiDirection", (ArrayList<String>) multiDirection);
+        cx.startActivity(i);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(requestCode==3312){
+        if (requestCode == 3312) {
             //granted or not, still load maps, but user can't select my location
             webView.loadUrl(mapsUrl);
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    WebViewClient webViewClient = new WebViewClient(){
+    WebViewClient webViewClient = new WebViewClient() {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            if(!url.startsWith(mapsUrl)){
+            LocationPickerActivity.log("onPageStarted "+url);
+            if (url.startsWith("intent")) {
+                openMaps(url);
                 view.stopLoading();
                 view.goBack();
                 return;
             }
-            log("onPageStarted  "+url);
+            if (!url.startsWith(mapsUrl)) {
+                view.stopLoading();
+                view.goBack();
+                return;
+            }
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setIndeterminate(true);
             super.onPageStarted(view, url, favicon);
@@ -91,7 +155,7 @@ public class LocationPickerActivity extends AppCompatActivity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            log("onPageFinished  "+url);
+            LocationPickerActivity.log("onPageFinished "+url);
             progressBar.setVisibility(View.GONE);
             super.onPageFinished(view, url);
         }
@@ -116,7 +180,7 @@ public class LocationPickerActivity extends AppCompatActivity {
 
         @Override
         public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(LocationPickerActivity.this);
+            final AlertDialog.Builder builder = new AlertDialog.Builder(DirectionActivity.this);
             String message = "SSL Certificate error.";
             switch (error.getPrimaryError()) {
                 case SslError.SSL_UNTRUSTED:
@@ -154,11 +218,11 @@ public class LocationPickerActivity extends AppCompatActivity {
 
     };
 
-    WebChromeClient chrome = new WebChromeClient(){
+    WebChromeClient chrome = new WebChromeClient() {
 
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
-            if(progressBar.isIndeterminate()) {
+            if (progressBar.isIndeterminate()) {
                 progressBar.setIndeterminate(false);
                 progressBar.setMax(100);
             }
@@ -173,44 +237,29 @@ public class LocationPickerActivity extends AppCompatActivity {
 
         @Override
         public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-            callback.invoke(origin,true,true);
+            callback.invoke(origin, true, true);
             super.onGeolocationPermissionsShowPrompt(origin, callback);
         }
+
     };
 
-    public static void log(String txt){
-        Log.d("Mpicker",txt);
-
-    }
-
-    public void chooseLocation(View v){
-        String url = webView.getUrl();
-        log(url);
-        // try to use regex
-        Pattern p = Pattern.compile("^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)$");
-        Matcher m = p.matcher(webView.getUrl());
-        if(m.find()) {
-            log(m.group(0));
-            String[] koordinat = m.group(0).split(",");
-            if (koordinat.length > 1) {
-                log(koordinat[0] + "," + koordinat[1]);
-                sendResult(koordinat[0],koordinat[1]);
-            }
-        }else {
-            // using Split
-            String[] koordinat = url.split("@")[1].split(",");
-            if (koordinat.length > 1) {
-                log(koordinat[0] + "," + koordinat[1]);
-                sendResult(koordinat[0],koordinat[1]);
+    public void openMaps(String url){
+        if(url.startsWith("intent")){
+            url = url.substring(url.indexOf("https:"));
+        }
+        LocationPickerActivity.log("openGoogleMaps "+url);
+        try {
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
+            finish();
+        } catch (Exception e) {
+            Toast.makeText(this,"Please install Google Maps",Toast.LENGTH_SHORT).show();
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.apps.maps")));
+            } catch (android.content.ActivityNotFoundException anfe) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.maps")));
             }
         }
-    }
-
-    private void sendResult(String lat, String lon){
-        Intent i = getIntent();
-        i.putExtra("lat", lat);
-        i.putExtra("lon", lon);
-        setResult(RESULT_OK, i);
-        finish();
     }
 }
