@@ -1,0 +1,3 @@
+include ':LocationPicker'
+include ':app'
+rootProject.name = "Rencana Perjalanan"
