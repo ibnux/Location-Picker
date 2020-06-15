@@ -22,7 +22,7 @@ Add the dependency
 
 ```
 dependencies {
-	implementation 'com.github.ibnux:Location-Picker:1.3'
+	implementation 'com.github.ibnux:Location-Picker:1.5'
 }
 ```
 

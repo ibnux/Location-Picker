@@ -41,7 +41,7 @@ public class LocationPickerActivity extends AppCompatActivity {
         webView.setWebChromeClient(chrome);
         webView.setWebViewClient(webViewClient);
         WebSettings settings = webView.getSettings();
-        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setDatabaseEnabled(true);
         settings.setGeolocationDatabasePath( getFilesDir().getPath() );
         settings.setJavaScriptEnabled(true);
