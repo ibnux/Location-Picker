@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.ibnux.locationpicker.MapsPickerActivity;
+import com.ibnux.locationpicker.LocationPickerActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -14,7 +14,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        startActivityForResult(new Intent(this, MapsPickerActivity.class),4268);
+        startActivityForResult(new Intent(this, LocationPickerActivity.class),4268);
     }
 
     @Override

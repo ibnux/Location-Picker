@@ -1,9 +1,7 @@
 package com.ibnux.locationpicker;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.Intent;
@@ -23,11 +21,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MapsPickerActivity extends AppCompatActivity {
+public class LocationPickerActivity extends AppCompatActivity {
     String mPerms[] = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
     WebView webView;
     ProgressBar progressBar;
@@ -37,7 +34,7 @@ public class MapsPickerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps_picker);
+        setContentView(R.layout.activity_location_picker);
         webView = findViewById(R.id.webView);
         progressBar = findViewById(R.id.progressBar);
 

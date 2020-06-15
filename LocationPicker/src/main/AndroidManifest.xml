@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application>
-        <activity android:name=".MapsPickerActivity"
+        <activity android:name=".LocationPickerActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"/>
     </application>
 
