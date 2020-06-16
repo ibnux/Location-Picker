@@ -22,11 +22,13 @@ Add the dependency
 
 ```
 dependencies {
-	implementation 'com.github.ibnux:Location-Picker:1.6'
+	implementation 'com.github.ibnux:Location-Picker:1.7'
 }
 ```
 
 # HOW TO USE
+
+## Location picker
 
 call it in your code
 
@@ -35,7 +37,7 @@ startActivityForResult(new Intent(this, MapsPickerActivity.class), 4268);
 
 ```
 
-get the result
+**RESULT**
 
 ```
 @Override
@@ -54,24 +56,91 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
 }
 ```
 
-# Get Direction
+## Get Direction
 
 Single destination
 
 ```
-DirectionActivity.goTo("-6.3763443","106.7190438",this);
+DirectionActivity.goTo("-6.3763443", "106.7190438", this);
+
+```
+with from coordinate
+
+```
+DirectionActivity.goTo("-6.3740574", "106.6355415", "-6.3763443", "106.7190438", this);
 
 ```
 
 Multiple Destination
 
 ```
-List<String> lokasi = new ArrayList<>();
-lokasi.add("-6.3763443,106.7190438");
-lokasi.add("-6.3740574,106.6355415");
-lokasi.add("-6.3455664,106.7641159");
-DirectionActivity.goTo(lokasi,this);
+List<String> location = new ArrayList<>();
+location.add("-6.3763443,106.7190438");
+location.add("-6.3740574,106.6355415");
+location.add("-6.3455664,106.7641159");
+DirectionActivity.goTo(location, this);
 ```
 
+Multiple Destination with from coordinate
+
+
+```
+List<String> location = new ArrayList<>();
+location.add("-6.3763443,106.7190438");
+location.add("-6.3740574,106.6355415");
+location.add("-6.3455664,106.7641159");
+DirectionActivity.goTo("-6.3740574", "106.6355415", location, this);
+```
+
+
+## Get Distance
+Single destination
+
+```
+DirectionActivity.disTanceOf("-6.3763443", "106.7190438", 8264, this);
+
+```
+with from coordinate
+
+```
+DirectionActivity.disTanceOf("-6.3740574", "106.6355415", "-6.3763443", "106.7190438", 8264, this);
+
+```
+
+
+Multiple Destination
+
+```
+List<String> location = new ArrayList<>();
+location.add("-6.3763443,106.7190438");
+location.add("-6.3740574,106.6355415");
+location.add("-6.3455664,106.7641159");
+DirectionActivity.disTanceOf(location, 8264, this);
+```
+
+Multiple Destination with from coordinate, max 2 destination
+
+```
+List<String> location = new ArrayList<>();
+location.add("-6.3763443,106.7190438");
+location.add("-6.3740574,106.6355415");
+DirectionActivity.disTanceOf("-6.3455664", "106.7641159", 8264, location, this);
+```
+
+**RESULT**
+
+```
+@Override
+protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if(resultCode==RESULT_OK) {
+        if (requestCode == 8264){
+            String meter = data.getStringExtra("meters");
+            String times = data.getStringExtra("times");
+        }
+    }
+
+}
+```
 
 ### Created by ibnux

@@ -1,18 +1,27 @@
 package com.ibnux.locationpicker;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.JsonReader;
+import android.util.JsonToken;
+import android.util.Log;
 import android.view.View;
 import android.webkit.GeolocationPermissions;
 import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -23,29 +32,28 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DirectionActivity extends AppCompatActivity {
-    //https://www.google.com/maps/dir//-6.3763443,106.7190438/
+public class GetDistanceActivity extends AppCompatActivity {
     String mPerms[] = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
     WebView webView;
     ProgressBar progressBar;
+
     String mapsUrl = "https://www.google.com/maps/",
             destination = "dir/";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_direction);
+        setContentView(R.layout.activity_get_distance);
+
 
         webView = findViewById(R.id.webView);
         progressBar = findViewById(R.id.progressBar);
-
         webView.setWebChromeClient(chrome);
         webView.setWebViewClient(webViewClient);
         WebSettings settings = webView.getSettings();
@@ -58,7 +66,7 @@ public class DirectionActivity extends AppCompatActivity {
         settings.setUseWideViewPort(true);
 
         Intent i = getIntent();
-        
+
         // Add from location
         if (i.hasExtra("fromLat") && i.hasExtra("fromLon")) {
             destination += i.getStringExtra("fromLat") + "," + i.getStringExtra("fromLon")+ "/";
@@ -71,11 +79,6 @@ public class DirectionActivity extends AppCompatActivity {
             int count = locations.size();
             for(int n=0; n<count; n++) {
                 destination += locations.get(n) + "/";
-            }
-            if(count>2) {
-                mapsUrl += destination;
-                openMaps(mapsUrl);
-                finish();
             }
         } else if (i.hasExtra("toLat") && i.hasExtra("toLon")) {
             destination += i.getStringExtra("toLat") + "," + i.getStringExtra("toLon");
@@ -95,40 +98,46 @@ public class DirectionActivity extends AppCompatActivity {
     }
 
     /**
-     * Open Direction Maps
+     * get Distance from user location
      *
-     * @param toLat String
-     * @param toLon String
-     * @param cx  Context
+     * @param toLat String to latitude
+     * @param toLon String to longitude
+     * @param cx Context
      */
-    public static void goTo(String toLat, String toLon, Context cx) {
-        Intent i = new Intent(cx, DirectionActivity.class);
+    public static void disTanceOf(String toLat, String toLon, int requestCode, Activity cx) {
+        Intent i = new Intent(cx, GetDistanceActivity.class);
         i.putExtra("toLat", toLat);
         i.putExtra("toLon", toLon);
-        cx.startActivity(i);
+        cx.startActivityForResult(i,requestCode);
     }
 
     /**
-     * Open Direction Maps
+     * get Distance from user location
      *
-     * @param toLat double
-     * @param toLon double
-     * @param cx  Context
+     * @param toLat double to latitude
+     * @param toLon double to longitude
+     * @param cx Context
      */
-    public static void goTo(double toLat, double toLon, Context cx) {
-        goTo(String.valueOf(toLat), String.valueOf(toLon), cx);
+    public static void disTanceOf(double toLat, double toLon, int requestCode, Activity cx) {
+        disTanceOf(String.valueOf(toLat), String.valueOf(toLon), requestCode, cx);
     }
 
+
     /**
-     * Open Direction Maps with multiple destination
-     * list.add("lat,lon");
      *
-     * @param multiDirection arraylist
+     * @param fromLat from latitude
+     * @param fromLon from longitude
+     * @param toLat to latitude
+     * @param toLon to longitude
+     * @param cx Context
      */
-    public static void goTo(List<String> multiDirection, Context cx) {
-        Intent i = new Intent(cx, DirectionActivity.class);
-        i.putStringArrayListExtra("multiDirection", (ArrayList<String>) multiDirection);
-        cx.startActivity(i);
+    public static void disTanceOf(String fromLat, String fromLon, String toLat, String toLon, int requestCode, Activity cx) {
+        Intent i = new Intent(cx, GetDistanceActivity.class);
+        i.putExtra("fromLat", fromLat);
+        i.putExtra("fromLon", fromLon);
+        i.putExtra("toLat", toLat);
+        i.putExtra("toLon", toLon);
+        cx.startActivityForResult(i,requestCode);
     }
 
     /**
@@ -139,53 +148,82 @@ public class DirectionActivity extends AppCompatActivity {
      * @param toLon to longitude
      * @param cx Context
      */
-    public static void goTo(String fromLat, String fromLon, String toLat, String toLon, Context cx) {
-        Intent i = new Intent(cx, DirectionActivity.class);
-        i.putExtra("fromLat", fromLat);
-        i.putExtra("fromLon", fromLon);
-        i.putExtra("toLat", toLat);
-        i.putExtra("toLon", toLon);
-        cx.startActivity(i);
-    }
-
-    /**
-     *
-     * @param fromLat from latitude
-     * @param fromLon from longitude
-     * @param toLat to latitude
-     * @param toLon to longitude
-     * @param cx Context
-     */
-    public static void goTo(double fromLat, double fromLon, double toLat, double toLon, Context cx) {
-        goTo(String.valueOf(fromLat), String.valueOf(fromLon), String.valueOf(toLat), String.valueOf(toLon), cx);
+    public static void disTanceOf(double fromLat, double fromLon, double toLat, double toLon, int requestCode, Activity cx) {
+        disTanceOf(String.valueOf(fromLat), String.valueOf(fromLon), String.valueOf(toLat), String.valueOf(toLon), requestCode, cx);
     }
 
     /**
      * Open Direction Maps with multiple destination
+     * max 2 destination
+     * list.add("lat,lon");
+     *
+     * @param multiDirection arraylist
+     */
+    public static void disTanceOf(List<String> multiDirection, int requestCode, Activity cx) {
+        Intent i = new Intent(cx, GetDistanceActivity.class);
+        i.putStringArrayListExtra("multiDirection", (ArrayList<String>) multiDirection);
+        cx.startActivityForResult(i, requestCode);
+    }
+
+    /**
+     * Open Direction Maps with multiple destination
+     * max 2 destination
      * list.add("lat,lon");
      *
      * @param fromLat from latitude
      * @param fromLon from longitude
      * @param multiDirection arraylist
      */
-    public static void goTo(String fromLat, String fromLon, List<String> multiDirection, Context cx) {
-        Intent i = new Intent(cx, DirectionActivity.class);
+    public static void disTanceOf(String fromLat, String fromLon, List<String> multiDirection, int requestCode, Activity cx) {
+        Intent i = new Intent(cx, GetDistanceActivity.class);
         i.putExtra("fromLat", fromLat);
         i.putExtra("fromLon", fromLon);
         i.putStringArrayListExtra("multiDirection", (ArrayList<String>) multiDirection);
-        cx.startActivity(i);
+        cx.startActivityForResult(i, requestCode);
     }
 
     /**
      * Open Direction Maps with multiple destination
+     * max 2 destination
      * list.add("lat,lon");
      *
      * @param fromLat from latitude
      * @param fromLon from longitude
      * @param multiDirection arraylist
      */
-    public static void goTo(double fromLat, double fromLon, List<String> multiDirection, Context cx) {
-        goTo(String.valueOf(fromLat),String.valueOf(fromLon),multiDirection,cx);
+    public static void disTanceOf(double fromLat, double fromLon, List<String> multiDirection, int requestCode, Activity cx) {
+        disTanceOf(String.valueOf(fromLat),String.valueOf(fromLon),multiDirection, requestCode, cx);
+    }
+
+    public void chooseLocation(View v){
+        webView.evaluateJavascript("(function() { " +
+                "var dis = document.getElementsByClassName('ml-directions-pane-header-distance')[0].innerHTML;" +
+                "dis = dis.substring(dis.indexOf('>')+1);" +
+                "dis = dis.substring(0,dis.indexOf('<'));" +
+                "var distance = dis.split(' ');" +
+                "var result;" +
+                "if(distance[1] == 'km'){" +
+                "    result = distance[0].replace(',','.') * 1000;" +
+                "}else if(distance[1] == 'm'){" +
+                "    result = distance[0];" +
+                "}" +
+                "result+='|';" +
+                "var time = document.getElementsByClassName('ml-directions-pane-header-time-content')[0].innerHTML;" +
+                "time = time.substring(time.indexOf('>')+1);" +
+                "time = time.substring(0,time.indexOf('<'));" +
+                "return result+time; })();", new ValueCallback<String>() {
+            @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+            @Override
+            public void onReceiveValue(String result) {
+                result = result.replace("\"","");
+                LocationPickerActivity.log("onReceiveValue "+result);
+                Intent i = getIntent();
+                i.putExtra("meters", result.substring(0,result.indexOf("|")));
+                i.putExtra("times", result.substring(result.indexOf("|")+1));
+                setResult(RESULT_OK, i);
+                finish();
+            }
+        });
     }
 
     @Override
@@ -202,12 +240,6 @@ public class DirectionActivity extends AppCompatActivity {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             LocationPickerActivity.log("onPageStarted "+url);
-            if (url.startsWith("intent")) {
-                openMaps(url);
-                view.stopLoading();
-                view.goBack();
-                return;
-            }
             if (!url.startsWith(mapsUrl)) {
                 view.stopLoading();
                 view.goBack();
@@ -245,7 +277,7 @@ public class DirectionActivity extends AppCompatActivity {
 
         @Override
         public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(DirectionActivity.this);
+            final AlertDialog.Builder builder = new AlertDialog.Builder(GetDistanceActivity.this);
             String message = "SSL Certificate error.";
             switch (error.getPrimaryError()) {
                 case SslError.SSL_UNTRUSTED:
@@ -307,24 +339,4 @@ public class DirectionActivity extends AppCompatActivity {
         }
 
     };
-
-    public void openMaps(String url){
-        if(url.startsWith("intent")){
-            url = url.substring(url.indexOf("https:"));
-        }
-        LocationPickerActivity.log("openGoogleMaps "+url);
-        try {
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            mapIntent.setPackage("com.google.android.apps.maps");
-            startActivity(mapIntent);
-            finish();
-        } catch (Exception e) {
-            Toast.makeText(this,"Please install Google Maps",Toast.LENGTH_SHORT).show();
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.apps.maps")));
-            } catch (android.content.ActivityNotFoundException anfe) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.maps")));
-            }
-        }
-    }
 }

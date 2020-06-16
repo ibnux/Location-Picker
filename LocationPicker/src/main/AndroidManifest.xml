@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ibnux.locationpicker">
+    package="com.ibnux.locationpicker" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -8,8 +8,11 @@
 
     <application>
         <activity
+            android:name=".GetDistanceActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
             android:name=".DirectionActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".LocationPickerActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
