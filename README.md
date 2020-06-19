@@ -33,7 +33,7 @@ dependencies {
 call it in your code
 
 ```
-startActivityForResult(new Intent(this, MapsPickerActivity.class), 4268);
+startActivityForResult(new Intent(this, LocationPickerActivity.class), 4268);
 
 ```
 
