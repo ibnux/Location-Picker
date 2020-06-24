@@ -7,6 +7,9 @@ this Library use WebView, so it doesn't require Maps API.
 #DEPEDENCIES
 
 [![](https://jitpack.io/v/ibnux/Location-Picker.svg)](https://jitpack.io/#ibnux/Location-Picker)
+[<img src="https://ibnux.github.io/KaryaKarsa-button/karyaKarsaButton.png" width="128">](https://karyakarsa.com/ibnux)
+[<img src="https://ibnux.github.io/Trakteer-button/trakteer_button.png" width="120">](https://trakteer.id/ibnux)
+
 
 Add the JitPack repository to your build file, Add it in your root build.gradle at the end of repositories
 
