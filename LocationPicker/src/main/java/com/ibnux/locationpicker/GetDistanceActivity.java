@@ -197,9 +197,12 @@ public class GetDistanceActivity extends AppCompatActivity {
 
     public void chooseLocation(View v){
         webView.evaluateJavascript("(function() { " +
-                "var dis = document.getElementsByClassName('ml-directions-pane-header-distance')[0].innerHTML;" +
-                "dis = dis.substring(dis.indexOf('>')+1);" +
-                "dis = dis.substring(0,dis.indexOf('<'));" +
+                "var dis = document.getElementsByClassName('ml-directions-pane-header-time')[0].innerHTML" +
+                ".replace(/(<([^>]+)>)/gi, \"\")" +
+                ".replace(/[^a-zA-Z0-9 .,(]/gi,'');" +
+
+                "time = dis.substring(0,dis.indexOf('(')).trim();" +
+                "dis = dis.substring(dis.indexOf('(')+1);" +
                 "var distance = dis.split(' ');" +
                 "var result;" +
                 "if(distance[1] == 'km'){" +
@@ -208,9 +211,6 @@ public class GetDistanceActivity extends AppCompatActivity {
                 "    result = distance[0];" +
                 "}" +
                 "result+='|';" +
-                "var time = document.getElementsByClassName('ml-directions-pane-header-time-content')[0].innerHTML;" +
-                "time = time.substring(time.indexOf('>')+1);" +
-                "time = time.substring(0,time.indexOf('<'));" +
                 "return result+time; })();", new ValueCallback<String>() {
             @TargetApi(Build.VERSION_CODES.HONEYCOMB)
             @Override
