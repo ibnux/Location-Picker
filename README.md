@@ -25,7 +25,7 @@ Add the dependency
 
 ```
 dependencies {
-	implementation 'com.github.ibnux:Location-Picker:1.7'
+	implementation 'com.github.ibnux:Location-Picker:[Check Jitpack Version]'
 }
 ```
 
@@ -140,6 +140,9 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
         if (requestCode == 8264){
             String meter = data.getStringExtra("meters");
             String times = data.getStringExtra("times");
+            if(meters.equals('failed'){
+                //TODO use other getDistance function
+            }
         }
     }
 

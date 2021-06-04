@@ -196,10 +196,13 @@ public class GetDistanceActivity extends AppCompatActivity {
     }
 
     public void chooseLocation(View v){
+        //TODO Everytime Google change maps design, this function need to change
         webView.evaluateJavascript("(function() { " +
-                "var dis = document.getElementsByClassName('ml-directions-pane-header-time')[0].innerHTML" +
-                ".replace(/(<([^>]+)>)/gi, \"\")" +
+                "var dis = document.getElementsByClassName('mapsLiteJsPanesDirectionsdetails__ml-directions-pane-header-time')[0].innerHTML;" +
+                "" +
+                "dis=dis.replace(/(<([^>]+)>)/gi, \"\")" +
                 ".replace(/[^a-zA-Z0-9 .,(]/gi,'');" +
+                "" +
 
                 "time = dis.substring(0,dis.indexOf('(')).trim();" +
                 "dis = dis.substring(dis.indexOf('(')+1);" +
@@ -217,10 +220,17 @@ public class GetDistanceActivity extends AppCompatActivity {
             public void onReceiveValue(String result) {
                 result = result.replace("\"","");
                 LocationPickerActivity.log("onReceiveValue "+result);
-                Intent i = getIntent();
-                i.putExtra("meters", result.substring(0,result.indexOf("|")));
-                i.putExtra("times", result.substring(result.indexOf("|")+1));
-                setResult(RESULT_OK, i);
+                try {
+                    Intent i = getIntent();
+                    i.putExtra("meters", result.substring(0, result.indexOf("|")));
+                    i.putExtra("times", result.substring(result.indexOf("|") + 1));
+                    setResult(RESULT_OK, i);
+                }catch (Exception e){
+                    Intent i = getIntent();
+                    i.putExtra("meters", "failed");
+                    i.putExtra("times", "failed");
+                    setResult(RESULT_OK,i);
+                }
                 finish();
             }
         });
